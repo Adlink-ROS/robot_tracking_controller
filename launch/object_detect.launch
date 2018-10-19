@@ -1,0 +1,14 @@
+<launch>
+	<node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen" respawn="true"> 
+    <remap from='image' to='/camera/rgb/image_raw'/>
+	</node>
+
+ 	 <node name="object_position" pkg="tensorflow_object_detector" type="object_position" output="screen" respawn="true"/>
+	<!-- rviz -->
+  <!--arg name ="rviz" default="true" />
+  <arg name ="rviz_file" default="$(find tensorflow_object_detector)/config/display.rviz"/>
+	<node pkg ="rviz" type="rviz" name="rviz" output="screen" args= "-d $(arg rviz_file)" if="$(arg rviz)"/-->
+
+  <!--astrapro-->
+  <!--include file="$(find astra_launch)/launch/astrapro.launch"/-->
+</launch>
