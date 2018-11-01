@@ -1,3 +1,4 @@
-# tf_ai_tracker
+This is part of the [adlink_tegrabot](https://github.com/Adlink-ROS/adlink_tegrabot) AI tracking robot project. Please go there for more information
 
-TensorFlow AI target tracker
+### tf_ai_tracker
+TensorFlow AI target tracking controller
