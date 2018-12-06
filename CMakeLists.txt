@@ -13,13 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp 
   pcl_conversions pcl_ros 
   image_transport tf 
-  geometry_msgs visualization_msgs 
-  image_geometry message_generation
+  geometry_msgs 
+  visualization_msgs 
+  image_geometry 
+  message_generation
   cv_bridge
   rospy
   sensor_msgs
   std_msgs
-  vision_msgs
+  object_msgs
 )
 
 ##set the URL to download
