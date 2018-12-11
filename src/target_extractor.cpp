@@ -6,9 +6,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/objdetect/objdetect.hpp"
+#include <algorithm>
 
 
-//EWING from leg_tracker.msg import Person, PersonArray, Leg, LegArray 
+//from leg_tracker.msg import Person, PersonArray, Leg, LegArray 
 //#include <stdlib.h>
 
 #include <tf/transform_listener.h>
@@ -76,10 +77,11 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 		ROS_ERROR("No transform from \"/base_footprint\" to \"%s\"", input.header.frame_id.c_str());
 		return;
 	}
-	tf::StampedTransform tf_cam_to_base;
+	tf::StampedTransform tf_cam_to_base, tf_cam_link;
 	try{
 		//tf_listener->waitForTransform("/base_link", input->header.frame_id, input->header.stamp, ros::Duration(3.0));
 		tf_listener->lookupTransform("/base_link", input.header.frame_id, input.header.stamp, tf_cam_to_base);
+		tf_listener->lookupTransform("/camera_link", input.header.frame_id, input.header.stamp, tf_cam_link);
 	}catch (tf::TransformException ex) {
 		ROS_WARN("TF lookup failed %s", ex.what());
 	}
@@ -103,34 +105,15 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 	line_object.color.g = 0;
 	line_object.color.b = 1.0;
 	line_object.color.a = 1.0;
-	//geometry_msgs::Point p;
 	
-
 	geometry_msgs::PoseArray ai_targets;
 	ai_targets.poses.clear();
 	ai_targets.header.frame_id = "camera_link";
 
-	// Arrange from left to right? sorting?
-	/*int iSwitch,count;
-	std::vector<vision_msgs::BoundingBox2D> t;
-	do{
-		iSwitch = 0;
-		for(int i = 0; i < count; i++)
-		{
-			if(bbox[i].center.x > bbox[i+1].center.x)
-			{
-				t[i] = bbox[i] ; 
-				bbox[i] = bbox[i+1]; 
-				bbox[i+1] = t[i];
-				iSwitch = 1;
-			}
-		}
-	}while(iSwitch);*/
-
 	if(bbox.size() != 0){
 		for(size_t i = 0; i != bbox.size(); i++)
 		{
-			// find center pixel coordinate, from top left.
+			// find center pixel coordinate, from top left of the frame.
 			int pix_center_x = bbox[i].roi.x_offset + ((float)bbox[i].roi.width/2);
 			int pix_center_y = bbox[i].roi.y_offset + ((float)bbox[i].roi.height/2);
 			int pix_center_ind = pix_center_y*input.width + pix_center_x;
@@ -138,19 +121,15 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 			float object_x = cloud_src.points[pix_center_ind].x;	// get pointcloud distance
 			float object_y = cloud_src.points[pix_center_ind].y;
 			float object_z = cloud_src.points[pix_center_ind].z;
-			tf::Vector3 obj_coord(object_x, object_y, object_z);
+			tf::Vector3 obj_coord(object_x, object_y, object_z);	// point cloud is defined in Z axis forward
+			tf::Vector3 obj_coord_in_cam = tf_cam_link * obj_coord;
 			tf::Vector3 obj_coord_in_base = tf_cam_to_base * obj_coord;
 			
 			if(std::isnan(object_x)) continue;	// elimiate point cloud errer?
 			
-			/*static geometry_msgs::Point object_position;
-			object_position.x = object_x; 
-			object_position.y = object_y; //object_position.z = object_z;
-			pose_buf.position = object_position;*/
-			
 			geometry_msgs::Pose pose_buf;
-			pose_buf.position.x = object_x; //track id
-			pose_buf.position.y = object_y; //track id
+			pose_buf.position.x = obj_coord_in_cam.x(); //track id
+			pose_buf.position.y = obj_coord_in_cam.y(); //track id
 			pose_buf.position.z = i + 1; //track id
 			ai_targets.poses.push_back(pose_buf); 
 
@@ -158,9 +137,9 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 			geometry_msgs::Point p;
 			p.x = 0; p.y = 0; p.z = 0; 
 			line_object.points.push_back(p);
-			p.x = object_x;
-			p.y = object_y; 
-			p.z = object_z;	
+			p.x = obj_coord_in_cam.x();
+			p.y = obj_coord_in_cam.y(); 
+			p.z = obj_coord_in_cam.z();	
 			line_object.points.push_back(p);
 			//DEBUG ROS_INFO("objectROI_center (%d,%d) - (%.2f %.2f %.2f)",rgb_object_x,rgb_object_y,object_x,object_y,object_z); 
 		}
@@ -182,11 +161,14 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 	people_tracked_msg.people.append(new_person)
 	self.people_tracked_pub.publish(people_tracked_msg) */
 	
-	//EWING
-	// publish rviz markers       
+	//=== Publish rviz markers ===
 	marker_id = 0;
 	ros::Time now = ros::Time::now();
-	static ros::Time last_seen;
+	static ros::Time last_seen[20];
+	static geometry_msgs::Pose last_pose[20];
+
+	int marker_count;
+	static int total_marker_count;
 	person_marker.header.frame_id = "/base_footprint";
 	person_marker.header.stamp = now;
 	person_marker.ns = "People_tracked";
@@ -194,63 +176,45 @@ void callbackPointCloud(const sensor_msgs::PointCloud2 &input)
 	person_marker.color.g = 0.8;
 	person_marker.color.b = 0.1;
 	
-	person_marker.color.a = (ros::Duration(3) - (now - last_seen)).toSec()/ros::Duration(3).toSec() + 0.1;
+	// Publish multiple targets
+	// keep publishing all targets so old unpublihsed ones won't hung up in rviz
+	total_marker_count = std::max(total_marker_count, (int)ai_targets.poses.size());
 	
-	for(std::vector<geometry_msgs::Pose>::iterator it = ai_targets.poses.begin(); it != ai_targets.poses.end(); ++it) 
+	for(int j = 0; j<total_marker_count; j++) 
 	{
+		
+		if( j < ai_targets.poses.size() )
+		{
+			last_pose[j] = ai_targets.poses[j];
+			last_seen[j] = now;		// register last_seen if ar_targets is not empty
+		}
+		float alpha_decay = (ros::Duration(3) - (now - last_seen[j])).toSec()/ros::Duration(3).toSec() + 0.1;
+		alpha_decay = std::max(alpha_decay, (float)0.0); // so it won't be negative
+		
 		// Cylinder for body 
-		person_marker.pose.position.x = it->position.x;
-		person_marker.pose.position.y = it->position.y;
-		person_marker.id = marker_id;
-		marker_id++;
 		person_marker.type = visualization_msgs::Marker::CYLINDER;
+		person_marker.id = marker_id;
+		person_marker.pose.position.x = last_pose[j].position.x;
+		person_marker.pose.position.y = last_pose[j].position.y;
+		person_marker.pose.position.z = 0.7;	// =scale.z / 2
 		person_marker.scale.x = 0.2;
 		person_marker.scale.y = 0.2;
-		person_marker.scale.z = 1.2;
-		person_marker.color.a = 0.9;
-		person_marker.pose.position.z = 0.8;
+		person_marker.scale.z = 1.4;	// 1.4 m in height
+		person_marker.color.a = alpha_decay;
 		marker_pub.publish(person_marker) ;
-		//std::cout << "pub" << std::endl;
+		marker_id++;
 
-		// Sphere for head shape                        
+		// Sphere for head 
 		person_marker.type = visualization_msgs::Marker::SPHERE;
-		person_marker.scale.x = 0.2;
+		person_marker.id = marker_id;
+		person_marker.pose.position.z = 1.5;	//position x, y is the same
+		person_marker.scale.x = 0.2;	// 0.2 m in diameter
 		person_marker.scale.y = 0.2;
 		person_marker.scale.z = 0.2;
-		person_marker.color.a = 0.9;
-		person_marker.pose.position.z = 1.5;
-		person_marker.id = marker_id;
-		marker_id ++;                
+		person_marker.color.a = alpha_decay;
 		marker_pub.publish(person_marker);
-		last_seen = now;
+		marker_id ++;  
 	}
-	
-	if( ai_targets.poses.empty() )
-	{
-		// Cylinder for body 
-		person_marker.id = marker_id;
-		marker_id++;
-		person_marker.type = visualization_msgs::Marker::CYLINDER;
-		person_marker.scale.x = 0.2;
-		person_marker.scale.y = 0.2;
-		person_marker.scale.z = 1.2;
-		person_marker.pose.position.z = 0.8;
-		marker_pub.publish(person_marker) ;
-		//std::cout << "pub" << std::endl;
-
-		// Sphere for head shape                        
-		person_marker.type = visualization_msgs::Marker::SPHERE;
-		person_marker.scale.x = 0.2;
-		person_marker.scale.y = 0.2;
-		person_marker.scale.z = 0.2;          
-		person_marker.pose.position.z = 1.5;
-		person_marker.id = marker_id;
-		marker_id ++;                
-		marker_pub.publish(person_marker);
-	}
-
-//  point_pub.publish(object_position);
-
 }
 
 constexpr unsigned int str2int(const char* str, int h = 0)
@@ -302,7 +266,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::Subscriber rgb_sub = nh.subscribe(object_box_topic, 1 , callbackROI);
 	ros::Subscriber pc_sub = nh.subscribe(pointcloud_topic, 1 , callbackPointCloud);
-	marker_pub = nh.advertise<visualization_msgs::Marker>("object_marker", 20);
+	marker_pub = nh.advertise<visualization_msgs::Marker>("detected_person", 20);
 	//  point_pub = nh.advertise<geometry_msgs::Point>("object_position", 5);
 	ai_targets_pub = nh.advertise<geometry_msgs::PoseArray>("ai_targets", 5);
 	ros::Rate loop_rate(30);
