@@ -22,21 +22,21 @@ import launch_ros.actions
 
 def generate_launch_description():
     return LaunchDescription([
-        #launch_ros.actions.Node(
-        #    package='tf_ai_tracker', node_executable='target_extractor',
-        #    output='screen',
-        #    parameters=[
-        #        {'camera_link':'camera_color_optical_frame'},
-        #    #{'enable_depth':True},
-        #    #{'enable_pointcloud':True},
-        #    #{'enable_aligned_depth':True},
-        #    #{'enable_aligned_pointcloud':True},
-        #    ],
-        #    #remappings=[
-        #    #    ('/camera/pointcloud', '/camera/aligned_depth_to_color/color/points')
-        #    #    ],
-        #    # arguments=['__params:=' + aligned_yaml],            
-        #    ),
+        launch_ros.actions.Node(
+            package='tf_ai_tracker', node_executable='target_extractor',
+            output='screen',
+            parameters=[
+                {'camera_link':'camera_color_optical_frame'},
+            #{'enable_depth':True},
+            #{'enable_pointcloud':True},
+            #{'enable_aligned_depth':True},
+            #{'enable_aligned_pointcloud':True},
+            ],
+            remappings=[
+                ('/camera/pointcloud', '/camera/aligned_depth_to_color/color/points')
+                ],
+             #arguments=['__params:=' + aligned_yaml],            
+            ),
 
         # Rviz
         #launch_ros.actions.Node(

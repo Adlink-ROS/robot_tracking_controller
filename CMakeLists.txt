@@ -21,7 +21,7 @@ find_package(cv_bridge REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(vision_msgs REQUIRED)
+#find_package(vision_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(object_msgs REQUIRED)
@@ -38,9 +38,9 @@ include_directories(
   ${PCL_COMMON_INCLUDE_DIRS}
 )
 
-add_executable( target_extractor src/target_extractor.cpp)
+add_executable( target_tracker2 src/target_tracker2.cpp)
 
-ament_target_dependencies( target_extractor
+ament_target_dependencies(target_tracker2
   rclcpp
   std_msgs
   tf2_geometry_msgs
@@ -50,7 +50,7 @@ ament_target_dependencies( target_extractor
   
   )
 
-target_link_libraries( target_extractor
+target_link_libraries(target_tracker2
   ${PCL_COMMON_LIBRARIES}
   )
 
@@ -92,11 +92,11 @@ install(
 # )
 
 # Install binaries
-install(TARGETS target_extractor
+install(TARGETS target_tracker2
   RUNTIME DESTINATION bin
 )
 
-install(TARGETS target_extractor
+install(TARGETS target_tracker2
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_export_libraries(${library_name})
