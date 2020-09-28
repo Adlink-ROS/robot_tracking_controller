@@ -103,6 +103,15 @@ install(
 # )
 
 # Install binaries
+
+install(TARGETS target_filter
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS target_tracker2
+  RUNTIME DESTINATION bin
+)
+
 install(TARGETS target_filter
   DESTINATION lib/${PROJECT_NAME}
 )
