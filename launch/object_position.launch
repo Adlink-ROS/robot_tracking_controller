@@ -1,6 +1,0 @@
-<launch>
-
-  <node name="object_position" pkg="tensorflow_object_detector" type="object_position" output="screen" respawn="true">
-  </node>
-
-</launch>

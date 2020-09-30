@@ -26,31 +26,27 @@ def generate_launch_description():
             package='tf_ai_tracker', node_executable='target_extractor',
             output='screen',
             parameters=[
-                {'camera_link':'camera_color_optical_frame'},
-            #{'enable_depth':True},
-            #{'enable_pointcloud':True},
-            #{'enable_aligned_depth':True},
-            #{'enable_aligned_pointcloud':True},
+                {'camera_link':'camera_link'},
             ],
-            remappings=[
-                ('/camera/pointcloud', '/camera/aligned_depth_to_color/color/points')
-                ],
-             #arguments=['__params:=' + aligned_yaml],            
-            ),
+        ),
 
-        # Rviz
-        #launch_ros.actions.Node(
-            #package='rviz2', node_executable='rviz2', output='screen',
-            #arguments=['--display-config', default_rviz]),
-
-        # TF
         launch_ros.actions.Node(
-            package='tf2_ros', node_executable='static_transform_publisher', output='screen',
-            arguments=['0.0', '0.0', '0.1', '0.0', '0.0', '0', '/base_footprint', '/camera_color_optical_frame']),
+            package='tf_ai_tracker', node_executable='target_filter',
+            output='screen',
+        ),
+
+        launch_ros.actions.Node(
+            package='tf_ai_tracker', node_executable='target_tracker',
+            output='screen',
+        ),
 
         launch_ros.actions.Node(
             package='tf2_ros', node_executable='static_transform_publisher', output='screen',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_base', '/base_link']),
+            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/world']),
+
+        launch_ros.actions.Node(
+            package='tf2_ros', node_executable='static_transform_publisher', output='screen',
+            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/base_link']),
 
         launch_ros.actions.Node(
             package='tf2_ros', node_executable='static_transform_publisher', output='screen',

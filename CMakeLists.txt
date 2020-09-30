@@ -38,11 +38,11 @@ include_directories(
   ${PCL_COMMON_INCLUDE_DIRS}
 )
 
-add_executable( target_tracker2 src/target_tracker2.cpp)
+add_executable( target_tracker src/target_tracker.cpp)
 add_executable( target_filter src/target_filter.cpp)
 add_executable( target_extractor src/target_extractor.cpp)
 
-ament_target_dependencies( target_tracker2  
+ament_target_dependencies(target_tracker 
   rclcpp
   std_msgs
   tf2_geometry_msgs
@@ -50,10 +50,6 @@ ament_target_dependencies( target_tracker2
   object_msgs
   visualization_msgs
   )
-<<<<<<< HEAD
-=======
-
->>>>>>> 2bf142d4b7ffc74f9f9248cee1bfd2f7c6b9c66e
 ament_target_dependencies(target_filter
   rclcpp
   std_msgs
@@ -73,7 +69,7 @@ ament_target_dependencies(target_extractor
 target_link_libraries(target_filter
   ${PCL_COMMON_LIBRARIES}
   )
-target_link_libraries(target_tracker2 
+target_link_libraries(target_tracker
   ${PCL_COMMON_LIBRARIES}
   )
 target_link_libraries(target_extractor 
@@ -122,7 +118,7 @@ install(TARGETS target_filter
   RUNTIME DESTINATION bin
 )
 
-install(TARGETS target_tracker2
+install(TARGETS target_tracker
   RUNTIME DESTINATION bin
 )
 
@@ -134,7 +130,7 @@ install(TARGETS target_filter
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS target_tracker2 
+install(TARGETS target_tracker
   DESTINATION lib/${PROJECT_NAME}
 )
 
