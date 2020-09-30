@@ -56,7 +56,7 @@ double target_threshold = 0.85;
 void callbackROI(object_msgs::msg::ObjectsInBoxes::SharedPtr data)
 {
   auto npc = rclcpp::Node::make_shared("roi");
-  RCLCPP_INFO(npc->get_logger(), "callbackROI");
+//   RCLCPP_INFO(npc->get_logger(), "	");
   bbox.clear();
   int count = 0;
   //vision_msgs::Detection2D detection;
@@ -66,6 +66,7 @@ void callbackROI(object_msgs::msg::ObjectsInBoxes::SharedPtr data)
   {
     if( (object_iter->object.object_name == target_name) && (object_iter->object.probability >= target_threshold) )
 	{  
+	// fprintf(stderr, "***!!! CT: callbackROI: push target_name=%s\n", target_name.c_str());
 		bbox.push_back((*object_iter));
 		count = ++count;
     }
@@ -77,7 +78,9 @@ void callbackROI(object_msgs::msg::ObjectsInBoxes::SharedPtr data)
 void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 {
 	auto npc = rclcpp::Node::make_shared("pcl");
-	RCLCPP_INFO(npc->get_logger(), "callbackPointCloud");
+	// RCLCPP_INFO(npc->get_logger(), "callbackPointCloud");
+
+	// fprintf(stderr, "***!!! CT: callbackPointCloud: start\n");
 
 	std::string base_footprint = npc->declare_parameter("base_footprint", "base_footprint");
 	std::string base_link = npc->declare_parameter("base_link", "base_link");
@@ -138,6 +141,9 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 			float object_x = cloud_src.points[pix_center_ind].x;	// get pointcloud distance
 			float object_y = cloud_src.points[pix_center_ind].y;
 			float object_z = cloud_src.points[pix_center_ind].z;
+
+			fprintf(stderr, "***!!! CT: px,py,i=(%d,%d,%d), ox,oy,oz=(%.2f,%.2f,%.2f), input_w=%d\n", pix_center_x, pix_center_y, pix_center_ind, object_x, object_y, object_z, input->width);
+
 			geometry_msgs::msg::TransformStamped cam_obj;
 			cam_obj.header.frame_id = input->header.frame_id;
 			cam_obj.header.stamp = rclcpp::Clock().now();
@@ -167,9 +173,11 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 			p.y = obj_coord_in_cam.y(); 
 			p.z = obj_coord_in_cam.z();	
 			line_object.points.push_back(p);
-			RCLCPP_INFO(npc->get_logger(),"objectROI_center (%d,%d) - (%.2f %.2f %.2f)",pix_center_x,pix_center_y,object_x,object_y,object_z); 
+			// RCLCPP_INFO(npc->get_logger(),"objectROI_center (%d,%d) - (%.2f %.2f %.2f)",pix_center_x,pix_center_y,object_x,object_y,object_z); 
 		}
 	}
+
+	// fprintf(stderr, "***!!! CT: callbackPointCloud: publish marker and ai_targets\n");
 	marker_pub->publish(line_object);
 	ai_targets_pub->publish(ai_targets);
 	//EWING
@@ -254,7 +262,7 @@ int main(int argc, char **argv)
 	auto nh = rclcpp::Node::make_shared("target_extractor");
 	RCLCPP_INFO(nh->get_logger(), "ai_target_extractor");
 	std::string object_box_topic = nh->declare_parameter("object_box_topic","/ros2_openvino_toolkit/detected_objects");
-	std::string pointcloud_topic = nh->declare_parameter("pointcloud_topic","/camera/aligned_depth_to_color/color/points");
+	std::string pointcloud_topic = nh->declare_parameter("pointcloud_topic","/camera/pointcloud");
 	std::string target_name = nh->declare_parameter("target_type", "person");
 	double target_threshold = nh->declare_parameter("target_threshold", 0.85);
 	nh->get_parameter("object_box_topic", object_box_topic);

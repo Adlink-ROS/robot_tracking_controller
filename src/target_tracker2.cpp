@@ -27,7 +27,7 @@ double vel_max, ang_max;
 double decay_factor_lin, decay_factor_ang, inject_factor_lin, inject_factor_ang;
 
 rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub;
-rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr position;
+// rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr position;
 
 
 void trackerCB(geometry_msgs::msg::Point::SharedPtr Position)
@@ -46,10 +46,9 @@ void trackerCB(geometry_msgs::msg::Point::SharedPtr Position)
     std::chrono::time_point<std::chrono::high_resolution_clock> last_time;
     std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 
-    double d = sqrt( pow(Position->x,2) + pow((Position->y+0.05),2) );
-    double rad = atan2((Position->y)+0.05, Position->x);
-    //printf("distant = %f\n", d);
-    //printf("rad = %f\n", rad);
+    double d = sqrt( pow(Position->x,2) + pow(Position->y,2) );
+    double rad = atan2(Position->y, Position->x);
+    fprintf(stderr, "***!!! CT: x=%f, y=%f, distant=%lf, rad=%lf\n", Position->x, Position->y, d, rad);
 
     double dist_err = d - dist_target;
     double ang_err = rad - ang_target;
@@ -65,7 +64,7 @@ void trackerCB(geometry_msgs::msg::Point::SharedPtr Position)
     
     //DEBUG std::cout << "t " << exp( -decay_factor_ang*elapsed_ms.count()/1000 ) << " ms" << std::endl;
     
-    static geometry_msgs::msg::Twist track, vel_cmd; // static so it remembers last value
+    static geometry_msgs::msg::Twist vel_cmd; // static so it remembers last value
     if( d < dist_min)
     {
 		vel_cmd.linear.x *= decay_ratio_lin;
@@ -108,7 +107,8 @@ int main(int argc, char **argv) {
 	n->get_parameter("inject_factor_ang", inject_factor_ang);
     */
     vel_pub = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
-    auto sub = n->create_subscription<geometry_msgs::msg::Point>("point",10, trackerCB);
+    //auto sub = n->create_subscription<geometry_msgs::msg::Point>("point",10, trackerCB);
+    auto sub = n->create_subscription<geometry_msgs::msg::Point>("tracking_target", 10, trackerCB);
     rclcpp::Rate loop_rate(30);
 	while( rclcpp::ok() )
 	{

@@ -39,21 +39,42 @@ include_directories(
 )
 
 add_executable( target_tracker2 src/target_tracker2.cpp)
+add_executable( target_filter src/target_filter.cpp)
+add_executable( target_extractor src/target_extractor.cpp)
 
-ament_target_dependencies(target_tracker2
+ament_target_dependencies( target_tracker2  
   rclcpp
   std_msgs
   tf2_geometry_msgs
   geometry_msgs
   object_msgs
   visualization_msgs
-  
   )
-
-target_link_libraries(target_tracker2
+ament_target_dependencies(target_filter
+  rclcpp
+  std_msgs
+  tf2_geometry_msgs
+  geometry_msgs
+  object_msgs
+  visualization_msgs
+  )
+ament_target_dependencies(target_extractor
+  rclcpp
+  std_msgs
+  tf2_geometry_msgs
+  geometry_msgs
+  object_msgs
+  visualization_msgs
+  )  
+target_link_libraries(target_filter
   ${PCL_COMMON_LIBRARIES}
   )
-
+target_link_libraries(target_tracker2 
+  ${PCL_COMMON_LIBRARIES}
+  )
+target_link_libraries(target_extractor 
+  ${PCL_COMMON_LIBRARIES}
+  )  
 # add_library(${PROJECT_NAME} SHARED
 #   target_extractor 
 #   #src/target_filter.cpp 
@@ -92,13 +113,31 @@ install(
 # )
 
 # Install binaries
-install(TARGETS target_tracker2
+
+install(TARGETS target_filter
   RUNTIME DESTINATION bin
 )
 
 install(TARGETS target_tracker2
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS target_extractor
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS target_filter
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(TARGETS target_tracker2 
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS target_extractor 
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_export_libraries(${library_name})
 
 ament_package()
