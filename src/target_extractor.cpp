@@ -68,7 +68,7 @@ void callbackROI(object_msgs::msg::ObjectsInBoxes::SharedPtr data)
 	{  
 	// fprintf(stderr, "***!!! CT: callbackROI: push target_name=%s\n", target_name.c_str());
 		bbox.push_back((*object_iter));
-		count = ++count;
+		count++;
     }
   }
   //ROS_INFO("Shirts number:%d",count);
@@ -200,8 +200,7 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 	auto now = rclcpp::Clock().now();
 	static rclcpp::Time last_seen[20];
 	static geometry_msgs::msg::Pose last_pose[20];
-
-	int marker_count;
+	
 	static int total_marker_count;
 	person_marker.header.frame_id = "/base_footprint";
 	person_marker.header.stamp = now;
@@ -214,10 +213,10 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 	// keep publishing all targets so old unpublihsed ones won't hung up in rviz
 	total_marker_count = std::max(total_marker_count, (int)ai_targets.poses.size());
 
-	for(int j = 0; j<total_marker_count; j++) 
+	for (int j = 0; j<total_marker_count; j++) 
 	{
 
-		if( j < ai_targets.poses.size() )
+		if (j < (int)ai_targets.poses.size() )
 		{
 			last_pose[j] = ai_targets.poses[j];
 			last_seen[j] = now;		// register last_seen if ar_targets is not empty
