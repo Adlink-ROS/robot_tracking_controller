@@ -48,7 +48,6 @@ void trackerCB(geometry_msgs::msg::Point::SharedPtr Position)
 
     double d = sqrt( pow(Position->x,2) + pow(Position->y,2) );
     double rad = atan2(Position->y, Position->x);
-    fprintf(stderr, "***!!! CT: x=%f, y=%f, distant=%lf, rad=%lf\n", Position->x, Position->y, d, rad);
 
     double dist_err = d - dist_target;
     double ang_err = rad - ang_target;

@@ -66,7 +66,6 @@ void callbackROI(object_msgs::msg::ObjectsInBoxes::SharedPtr data)
   {
     if( (object_iter->object.object_name == target_name) && (object_iter->object.probability >= target_threshold) )
 	{  
-	// fprintf(stderr, "***!!! CT: callbackROI: push target_name=%s\n", target_name.c_str());
 		bbox.push_back((*object_iter));
 		count++;
     }
@@ -79,8 +78,6 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 {
 	auto npc = rclcpp::Node::make_shared("pcl");
 	// RCLCPP_INFO(npc->get_logger(), "callbackPointCloud");
-
-	// fprintf(stderr, "***!!! CT: callbackPointCloud: start\n");
 
 	std::string base_footprint = npc->declare_parameter("base_footprint", "base_footprint");
 	std::string base_link = npc->declare_parameter("base_link", "base_link");
@@ -142,8 +139,6 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 			float object_y = cloud_src.points[pix_center_ind].y;
 			float object_z = cloud_src.points[pix_center_ind].z;
 
-			fprintf(stderr, "***!!! CT: px,py,i=(%d,%d,%d), ox,oy,oz=(%.2f,%.2f,%.2f), input_w=%d\n", pix_center_x, pix_center_y, pix_center_ind, object_x, object_y, object_z, input->width);
-
 			geometry_msgs::msg::TransformStamped cam_obj;
 			cam_obj.header.frame_id = input->header.frame_id;
 			cam_obj.header.stamp = rclcpp::Clock().now();
@@ -177,7 +172,6 @@ void callbackPointCloud(sensor_msgs::msg::PointCloud2::SharedPtr input)
 		}
 	}
 
-	// fprintf(stderr, "***!!! CT: callbackPointCloud: publish marker and ai_targets\n");
 	marker_pub->publish(line_object);
 	ai_targets_pub->publish(ai_targets);
 	//EWING

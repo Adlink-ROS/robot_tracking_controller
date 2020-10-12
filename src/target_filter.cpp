@@ -118,7 +118,11 @@ int main(int argc, char **argv) {
 	n->set_parameter(rclcpp::Parameter("target_filter_buffer_size",10));
 	*/
 	position_pub = n->create_publisher<geometry_msgs::msg::Point>("tracking_target", 1000);
-	auto sub = n->create_subscription<geometry_msgs::msg::PoseArray>("ai_targets",1000, camerafilterCB);
+		rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+		qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+		qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+		qos_profile.depth = 1;	
+	auto sub = n->create_subscription<geometry_msgs::msg::PoseArray>("ai_targets", camerafilterCB, qos_profile);
 	rclcpp::spin(n);
 	return 0;
 }

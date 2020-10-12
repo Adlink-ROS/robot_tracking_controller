@@ -22,11 +22,13 @@ import launch_ros.actions
 
 def generate_launch_description():
     return LaunchDescription([
+
+        # Use oa_target_extractor
         launch_ros.actions.Node(
-            package='tf_ai_tracker', node_executable='target_extractor',
+            package='oa_target_extractor', node_executable='oa_target_extractor',
             output='screen',
-            parameters=[
-                {'camera_link':'camera_link'},
+            remappings=[
+                ('/human_poses', '/ai_targets'),
             ],
         ),
 
@@ -40,15 +42,15 @@ def generate_launch_description():
             output='screen',
         ),
 
-        launch_ros.actions.Node(
-            package='tf2_ros', node_executable='static_transform_publisher', output='screen',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/world']),
+        #launch_ros.actions.Node(
+        #    package='tf2_ros', node_executable='static_transform_publisher', output='screen',
+        #    arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/world']),
 
-        launch_ros.actions.Node(
-            package='tf2_ros', node_executable='static_transform_publisher', output='screen',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/base_link']),
+        #launch_ros.actions.Node(
+        #    package='tf2_ros', node_executable='static_transform_publisher', output='screen',
+        #    arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/camera_link', '/base_link']),
 
-        launch_ros.actions.Node(
-            package='tf2_ros', node_executable='static_transform_publisher', output='screen',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/base_link', '/base_footprint'])
+        #launch_ros.actions.Node(
+        #    package='tf2_ros', node_executable='static_transform_publisher', output='screen',
+        #    arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0', '/base_link', '/base_footprint'])
     ])
