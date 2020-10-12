@@ -25,7 +25,7 @@ def generate_launch_description():
 
         # Use TensorFlow
         launch_ros.actions.Node(
-            package='tf_ai_tracker', node_executable='target_extractor',
+            package='robot_tracking_controller', node_executable='target_extractor',
             output='screen',
             parameters=[
                 {'camera_link':'camera_link'},
@@ -33,12 +33,12 @@ def generate_launch_description():
         ),
 
         launch_ros.actions.Node(
-            package='tf_ai_tracker', node_executable='target_filter',
+            package='robot_tracking_controller', node_executable='target_filter',
             output='screen',
         ),
 
         launch_ros.actions.Node(
-            package='tf_ai_tracker', node_executable='target_tracker',
+            package='robot_tracking_controller', node_executable='target_tracker',
             output='screen',
         ),
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tf_ai_tracker)
+project(robot_tracking_controller)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -31,7 +31,7 @@ find_package(PCL 1.8 REQUIRED COMPONENTS
 find_package(visualization_msgs REQUIRED)
 # find_package(pcl_conversions REQUIRED)
 
-set(library_name tf_ai_tracker_lib)
+set(library_name robot_tracking_controller_lib)
 
 include_directories(
   include
